@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "./db/drizzle";
 import { measure } from "./db/schema";
 import fs from "fs";
+import { eq } from "drizzle-orm";
 
 require("dotenv").config();
 
@@ -137,6 +138,73 @@ app.post(
         },
         description: "Operação realizada com sucesso",
       },
+      200
+    );
+  }
+);
+
+app.patch(
+  "/confirm",
+  zValidator(
+    "json",
+    z.object({
+      measure_uuid: z.string().uuid(),
+      confirmed_value: z.number(),
+    }),
+    (result, c) => {
+      if (!result.success) {
+        if (result.error.issues[0].code === "invalid_type") {
+          return c.json(
+            {
+              error_code: "INVALID_TYPE",
+              error_description: `${result.error.issues[0].message}`,
+            },
+            400
+          );
+        } else {
+          return c.json({
+            error_code: "INVALID_DATA",
+            error_description: `${result.error.issues[0].message}`,
+          });
+        }
+      }
+    }
+  ),
+  async (c) => {
+    const { measure_uuid, confirmed_value } = c.req.valid("json");
+
+    const [data] = await db
+      .select()
+      .from(measure)
+      .where(eq(measure.id, measure_uuid));
+
+    if (!data) {
+      return c.json(
+        {
+          error_code: "MEASURE_NOT_FOUND",
+          error_description: "Leitura do mês já realizada",
+        },
+        404
+      );
+    }
+
+    if (data.has_confirmed === true) {
+      return c.json(
+        {
+          error_code: "CONFIRMATION_DUPLICATE",
+          error_description: "Leitura do mês já realizada",
+        },
+        409
+      );
+    }
+
+    await db
+      .update(measure)
+      .set({ has_confirmed: true, measure_value: confirmed_value })
+      .where(eq(measure.id, measure_uuid));
+
+    return c.json(
+      { description: "Operação realizada com sucesso", success: true },
       200
     );
   }
