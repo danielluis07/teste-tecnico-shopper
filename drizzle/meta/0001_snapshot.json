@@ -1,0 +1,70 @@
+{
+  "id": "5c219242-a5aa-42d6-8db6-fdec17843d7b",
+  "prevId": "c323b2d9-1231-43ed-a98a-5c73a66cbd83",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.measure": {
+      "name": "measure",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "customer_code": {
+          "name": "customer_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "measure_datetime": {
+          "name": "measure_datetime",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "measure_type": {
+          "name": "measure_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "measure_value": {
+          "name": "measure_value",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_confirmed": {
+          "name": "has_confirmed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

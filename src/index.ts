@@ -9,13 +9,70 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "./db/drizzle";
 import { measure } from "./db/schema";
 import fs from "fs";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 require("dotenv").config();
 
 const app = new Hono();
 
 app.use("*", cors({ origin: "*" }));
+
+app.get(
+  "/:customer_code/list",
+  zValidator(
+    "param",
+    z.object({
+      customer_code: z.string(),
+    })
+  ),
+  zValidator("query", z.object({ measure_type: z.string().optional() })),
+  async (c) => {
+    const { customer_code } = c.req.valid("param");
+    const queryParam = c.req.valid("query");
+    const measure_type = queryParam?.measure_type;
+
+    if (
+      measure_type !== "WATER" &&
+      measure_type !== "GAS" &&
+      measure_type !== undefined
+    ) {
+      return c.json(
+        {
+          error_code: "INVALID_DATA",
+          error_description: "Tipo de medidor inválido",
+        },
+        400
+      );
+    }
+
+    const whereClause = measure_type
+      ? and(
+          eq(measure.customer_code, customer_code),
+          eq(measure.measure_type, measure_type)
+        )
+      : eq(measure.customer_code, customer_code);
+
+    const data = await db.select().from(measure).where(whereClause);
+
+    if (data.length === 0) {
+      return c.json(
+        {
+          error_code: "MEASURES_NOT_FOUND",
+          error_description: "Nenhuma leitura encontrada",
+        },
+        404
+      );
+    }
+
+    return c.json(
+      {
+        customer_code,
+        measures: data,
+      },
+      200
+    );
+  }
+);
 
 app.post(
   "/upload",
@@ -56,7 +113,7 @@ app.post(
 
     const data = await db.select().from(measure);
 
-    const hasMatchingDate = data.some((item: any) => {
+    const hasMatchingDate = data.some((item) => {
       const itemDate = new Date(item.measure_datetime);
       return (
         itemDate.getFullYear() === measureYear &&
