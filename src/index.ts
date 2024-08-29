@@ -95,10 +95,13 @@ app.post(
             400
           );
         } else {
-          return c.json({
-            error_code: "INVALID_DATA",
-            error_description: `${result.error.issues[0].message}`,
-          });
+          return c.json(
+            {
+              error_code: "INVALID_DATA",
+              error_description: `${result.error.issues[0].message}`,
+            },
+            400
+          );
         }
       }
     }
