@@ -26,7 +26,7 @@ RUN mkdir -p /usr/src/app/src/uploads && chown -R node:node /usr/src/app/src/upl
 USER node
 
 # Expose the port that the application will listen on.
-EXPOSE 8080
+EXPOSE 3000
 
 # Define the command to run the application.
 CMD ["npm", "start"]

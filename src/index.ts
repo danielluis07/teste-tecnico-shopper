@@ -13,6 +13,9 @@ import { and, eq } from "drizzle-orm";
 
 require("dotenv").config();
 
+const base64Pattern =
+  /^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
+
 const app = new Hono();
 
 app.use("*", cors({ origin: "*" }));
@@ -79,7 +82,9 @@ app.post(
   zValidator(
     "json",
     z.object({
-      image: z.string(),
+      image: z.string().refine((value) => base64Pattern.test(value), {
+        message: "Invalid base64 format",
+      }),
       customer_code: z.string(),
       measure_datetime: z.string(),
       measure_type: z.string(),
