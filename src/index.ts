@@ -10,7 +10,6 @@ import { db } from "./db/drizzle";
 import { measure } from "./db/schema";
 import fs from "fs";
 import { and, eq } from "drizzle-orm";
-import { Base64 } from "js-base64";
 
 require("dotenv").config();
 
@@ -80,7 +79,25 @@ app.post(
   zValidator(
     "json",
     z.object({
-      image: z.string().refine(Base64.isValid),
+      image: z
+        .string()
+        .refine((str) => str.startsWith("data:image/"), {
+          message: 'Must start with "data:image/"',
+        })
+        .refine(
+          (str) => {
+            const [header, base64] = str.split(",");
+            return header.includes(";base64") && !!base64;
+          },
+          { message: "Must be a valid data URI with base64 encoding" }
+        )
+        .refine(
+          (str) => {
+            const base64 = str.split(",")[1];
+            return /^[A-Za-z0-9+/]+=*$/.test(base64);
+          },
+          { message: "Must contain valid base64 characters" }
+        ),
       customer_code: z.string(),
       measure_datetime: z.string(),
       measure_type: z.string(),
@@ -143,7 +160,9 @@ app.post(
       format = match[1];
     }
 
-    const buffer = Buffer.from(image, "base64");
+    const formattedImage = image.split(",")[1];
+
+    const buffer = Buffer.from(formattedImage, "base64");
     const mediaPath = `${__dirname}/uploads/${customer_code}.${format}`;
 
     fs.writeFileSync(`${mediaPath}`, buffer);
