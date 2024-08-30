@@ -74,6 +74,15 @@ app.get(
   }
 );
 
+// Formato dos inputs
+
+/* 
+  image: "data:image/png;base64,iVBORw0KGg..."
+  customer_code: '12345'
+  measure_datetime:"2000-12-12T14:15"
+  measure_type: "WATER" ou "GAS"
+*/
+
 app.post(
   "/upload",
   zValidator(
