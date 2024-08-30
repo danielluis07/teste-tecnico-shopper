@@ -99,8 +99,28 @@ app.post(
           { message: "Must contain valid base64 characters" }
         ),
       customer_code: z.string(),
-      measure_datetime: z.string(),
-      measure_type: z.string(),
+      measure_datetime: z.string().refine(
+        (value) => {
+          const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+          if (!regex.test(value)) return false;
+
+          const date = new Date(value);
+
+          if (isNaN(date.getTime())) return false;
+
+          const reconstructed = date.toISOString().slice(0, 16);
+          return reconstructed === value;
+        },
+        {
+          message:
+            "Invalid date-time format. Expected format: YYYY-MM-DDTHH:mm",
+        }
+      ),
+      measure_type: z
+        .string()
+        .refine((value) => ["WATER", "GAS"].includes(value), {
+          message: "Value must be either 'WATER' or 'GAS'",
+        }),
     }),
     (result, c) => {
       if (!result.success) {
@@ -138,7 +158,8 @@ app.post(
       const itemDate = new Date(item.measure_datetime);
       return (
         itemDate.getFullYear() === measureYear &&
-        itemDate.getMonth() === measureMonth
+        itemDate.getMonth() === measureMonth &&
+        item.measure_type === measure_type
       );
     });
 
