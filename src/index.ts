@@ -264,7 +264,7 @@ app.patch(
           return c.json({
             error_code: "INVALID_DATA",
             error_description: `${result.error.issues[0].message}`,
-          });
+          }, 400);
         }
       }
     }
