@@ -143,9 +143,7 @@ app.post(
       format = match[1];
     }
 
-    const formattedImage = image.split(",")[1];
-
-    const buffer = Buffer.from(formattedImage, "base64");
+    const buffer = Buffer.from(image, "base64");
     const mediaPath = `${__dirname}/uploads/${customer_code}.${format}`;
 
     fs.writeFileSync(`${mediaPath}`, buffer);
